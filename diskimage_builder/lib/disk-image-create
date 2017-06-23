@@ -327,7 +327,9 @@ if [ -n "$DIB_IMAGE_SIZE" ]; then
 else
     set +o xtrace
     echo "Calculating image size (this may take a minute)..."
-    sudo du -a -c -x ${TMP_BUILD_DIR}/built > ${du_output}
+    # previously we used du -x here however this currently doesn't work on AUFS
+    # see bug #1702382. When fixed upstream we should add -x back here.
+    sudo du -a -c ${TMP_BUILD_DIR}/built > ${du_output}
     # the last line is the total size from "-c".
     # scale this by 0.6 to create a slightly bigger image
     du_size=$(tail -n1 ${du_output} | cut -f1 | awk '{print int($1 / 0.6)}')
@@ -337,7 +339,7 @@ fi
 if [[ "${DIB_SHOW_IMAGE_USAGE:-0}" != 0 ]]; then
     set +o xtrace
     if [ ! -f "$du_output" ]; then
-        sudo du -a -c -x ${TMP_BUILD_DIR}/built > ${du_output}
+        sudo du -a -c ${TMP_BUILD_DIR}/built > ${du_output}
     fi
 
     du_output_show="sort -nr ${du_output} |
